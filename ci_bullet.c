@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+
 #include "ci_globals.h"
 #include "ci_bullet.h"
+#include "ci_player.h"
+#include "ci_target.h"
 
 static void init_bullet();
 
@@ -17,8 +20,12 @@ static void update_matrix_bullet(int clean);
 static int margine_bullet();
 static int interior_bullet();
 
+static int collision_bullet_tg_check();
+static void collision_bullet_tg_update();
 
 bullet_st bullet;
+
+static int targets_left = NR_TARGETS;
 
 char shape_bullet = '!';
 
@@ -65,7 +72,11 @@ static void game_bullet()
       pthread_mutex_unlock(get_bullet_status_mutex());
       break;
     }
-    do_sleep(50);
+    if (do_sleep(50))
+    {
+      fprintf(stderr, "bullet: Sleep-ul a esuat\n");
+      perror("Cauza este");
+    }
   }
 }
 
@@ -84,13 +95,15 @@ static void game_on_bullet()
     bullet.on_off = kOff;
     return;
   }
-  //TO DO
-  //collision check
 
   //altfel
   update_matrix_bullet(0);
 
-  do_sleep(50);
+  if (do_sleep(50))
+  {
+    fprintf(stderr, "bullet: Sleep-ul a esuat\n");
+    perror("Cauza este");
+  }
   while (1)
   {
     pthread_mutex_lock(get_bullet_status_mutex());
@@ -105,14 +118,20 @@ static void game_on_bullet()
     else if (get_bullet_status_check() == 0)
     {
       bullet.on_off = kOff;
-      //curat matricea
-      update_matrix_bullet(0);
+      /// curat matricea
+      // update_matrix_bullet(0);
       pthread_mutex_unlock(get_bullet_status_mutex());
       return;
     }
     pthread_mutex_unlock(get_bullet_status_mutex());
+
     update_bullet();
-    do_sleep(50);
+
+    if (do_sleep(50))
+    {
+      fprintf(stderr, "bullet: Sleep-ul a esuat\n");
+      perror("Cauza este");
+    }
   }
 }
 
@@ -122,10 +141,29 @@ static void update_bullet()
   if (interior_bullet())
   {
     bullet.pos.y -= 1; //updatez cu 1
+
+    //blochez target-urile si matr de ptr la target
+    pthread_mutex_lock(get_target_upd_mutex());
+    // pthread_mutex_lock(get_target_ptrmat_upd_mutex());
+
+    //collision check pt noua pozitie
+    if (collision_bullet_tg_check())
+    {
+      collision_bullet_tg_update();
+      //deblochez
+      pthread_mutex_unlock(get_target_upd_mutex());
+      // pthread_mutex_unlock(get_target_ptrmat_upd_mutex());
+      return;
+    }
+    //deblochez
+    pthread_mutex_unlock(get_target_upd_mutex());
+    // pthread_mutex_unlock(get_target_ptrmat_upd_mutex());
+
     update_matrix_bullet(1);
   }
   else
   {
+    // setez bullet-status pe 0-NO bullet
     pthread_mutex_lock(get_bullet_status_mutex());
     set_bullet_status_check(0);
     pthread_mutex_unlock(get_bullet_status_mutex());
@@ -133,6 +171,47 @@ static void update_bullet()
     //curat matricea
     update_matrix_bullet(0);
   }
+}
+
+static int collision_bullet_tg_check()
+{
+  //vf
+  if (get_target_ptrmat(bullet.pos.y, bullet.pos.x) != NULL)
+  {
+    return 1;
+  }
+  return 0;
+}
+
+static void collision_bullet_tg_update()
+{
+  // TODO
+  // updatez scorul
+
+  //setez target off
+  get_target_ptrmat(bullet.pos.y, bullet.pos.x)->on_off = kOff;
+  ///curat target din matr ptr
+  target_st* tmp_tg = get_target_ptrmat(bullet.pos.y, bullet.pos.x);
+
+  for (size_t i = 0; i < TARGET_WIDTH; i++)
+  {
+    set_target_ptrmat(tmp_tg->pos_y,tmp_tg->pos_x[i] , -1);
+  }
+
+  ///curat matr afisare
+  //bullet
+  pthread_mutex_lock(get_mat_upd_mutex());
+  //sterg de pe poz veche
+  set_mat_draw(bullet.pos.y + 1, bullet.pos.x, ' ');
+  //target
+  for (int i = 0; i < SPACESHIP_WIDTH; i++)
+    set_mat_draw(tmp_tg->pos_y, tmp_tg->pos_x[i], ' ');
+  pthread_mutex_unlock(get_mat_upd_mutex());
+
+  // setez bullet-status pe 0-NO bullet
+  pthread_mutex_lock(get_bullet_status_mutex());
+  set_bullet_status_check(0);
+  pthread_mutex_unlock(get_bullet_status_mutex());
 }
 
 static void update_matrix_bullet(int clean)

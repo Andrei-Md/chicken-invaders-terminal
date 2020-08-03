@@ -84,7 +84,7 @@ static void start_bullet_pl()
 void game_player()
 {
 
-  //TO DO
+  //TODO
   //signal wait implementation
 
 #ifdef DEBUG
@@ -109,6 +109,12 @@ void game_on_player()
     {
       player.on_off = kOff;
       pthread_mutex_unlock(get_game_on_mutex());
+      
+      //opresc bullet
+      pthread_mutex_lock(get_bullet_status_mutex());
+      set_bullet_status_check(2);
+      pthread_mutex_unlock(get_bullet_status_mutex());
+      
       return;
     }
     pthread_mutex_unlock(get_game_on_mutex());
@@ -254,37 +260,3 @@ position_st get_player_pos()
   pos.y = player.pos_y;
   return pos;
 }
-
-////////////////////////////////////////////////////////////////////////
-
-void debug_player()
-{
-  tmp_update_player();
-  do_sleep(50);
-}
-
-void tmp_update_player()
-{
-  for (size_t i = 0; i < SPACESHIP_WIDTH; i++)
-    set_mat_draw(player.pos_y, player.pos_x[i], ' ');
-
-  player.pos_x[0] = player.pos_x[0] - 1;
-  player.pos_x[1] = player.pos_x[1] - 1;
-  player.pos_x[2] = player.pos_x[2] - 1;
-
-  if (player.on_off == kOn)
-  {
-    for (size_t i = 0; i < SPACESHIP_WIDTH; i++)
-      set_mat_draw(player.pos_y, player.pos_x[i], shape_player[i]);
-  }
-
-  if (player.pos_x[0] == 2)
-  {
-    player.on_off = kOff;
-    pthread_mutex_lock(get_game_on_mutex());
-    set_game_on_check(0);
-    pthread_mutex_unlock(get_game_on_mutex());
-  }
-}
-
-////////////////////////////////////////////////////////////////////////

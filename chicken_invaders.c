@@ -22,6 +22,7 @@ static pthread_t threads[NUM_THREADS];
 //optiuni terminal
 static struct termios initial_settings, new_settings;
 
+
 // //counter for wait
 // static int counter = NUM_THREADS;
 
@@ -29,6 +30,7 @@ int main(int argc, char *argv[])
 {
   init();
 
+  //threads din main
   ci_start();
 
   ///tmp
@@ -46,7 +48,12 @@ int main(int argc, char *argv[])
     }
     pthread_mutex_unlock(get_game_on_mutex());
     draw_game();
-    do_sleep(70);
+
+    if (do_sleep(65))
+    {
+      fprintf(stderr, "main: Sleep-ul a esuat\n");
+      perror("Cauza este");
+    }
   }
 
   ci_final();
@@ -65,12 +72,12 @@ void ci_start()
   /*Initialize and set:
   - thread detached attribute (Portability)*/
   pthread_attr_t attr;
-  if(pthread_attr_init(&attr))
+  if (pthread_attr_init(&attr))
   {
     fprintf(stderr, "main: Nu am putut initializa pthread_attr\n");
     perror("Cauza este");
   }
-  if(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE))
+  if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE))
   {
     fprintf(stderr, "main: Nu am putut set detach state for thread attribute\n");
     perror("Cauza este");
@@ -84,8 +91,16 @@ void ci_start()
     perror("Cauza este");
   }
 
+  //targets
+  if (pthread_create(&threads[TH_TARGET], &attr, start_targets, (void *)TH_TARGET))
+  {
+    fprintf(stderr, "main: Nu s-a creat thread-ul cu nr %d\n", TH_TARGET);
+    perror("Cauza este");
+  }
+
   start_score();
-  start_targets();
+
+  ///
 
   //destroy attribute
   if (pthread_attr_destroy(&attr))
@@ -100,6 +115,7 @@ static void init()
 {
   init_terminal();
   init_draw();
+  init_ptrmat();
 }
 
 //initializare mat de afisare playing ground cu spatii
@@ -224,19 +240,17 @@ void set_mat_draw(int r, int c, char ch)
   mat_draw[r][c] = ch;
 }
 
-/////////////////////////////////////////////////////////////////
-//tmp
-void tmp_update_mat_draw()
-{
-  //asta tb sa se faca in fiecare thread separat
-
-  //targets
-  for (size_t tg = 0; tg < NRMAX_TARGETS; tg++)
-  {
-    for (size_t i = 0; i < TARGET_WIDTH; i++)
-      if (target[tg].on_off == kOn)
-      {
-        mat_draw[target[tg].pos_y][target[tg].pos_x[i]] = shape_target[target[tg].state][i];
-      }
-  }
-}
+// /////////////////////////////////////////////////////////////////
+// //tmp
+// void tmp_update_mat_draw()
+// {
+//   //targets
+//   for (size_t tg = 0; tg < NR_TARGETS; tg++)
+//   {
+//     for (size_t i = 0; i < TARGET_WIDTH; i++)
+//       if (target[tg].on_off == kOn)
+//       {
+//         mat_draw[target[tg].pos_y][target[tg].pos_x[i]] = shape_target[target[tg].state][i];
+//       }
+//   }
+// }

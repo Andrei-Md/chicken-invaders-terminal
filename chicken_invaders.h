@@ -20,19 +20,11 @@ void reset_terminal();
 //modificare matrice joc
 void set_mat_draw(int r, int c, char ch);
 
-//tmp
-void tmp_update_mat_draw();
-
 ///
 ///game
-// extern player_st player;
-extern target_st target[NRMAX_TARGETS];
-// extern bullet_st bullet;
 extern score_st score;
+extern target_st *target_ptrmat[HMAX][LMAX];
 
-//shapes
-extern char shape_bullet;
-extern char shape_target[3][3];
 
 
 #endif

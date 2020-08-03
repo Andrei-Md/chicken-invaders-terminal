@@ -16,6 +16,13 @@ static pthread_mutex_t matrix_upd_m = PTHREAD_MUTEX_INITIALIZER;
 
 //bullet status
 static pthread_mutex_t bullet_status_m = PTHREAD_MUTEX_INITIALIZER;
+
+//update target matrix
+static pthread_mutex_t target_ptrmat_upd_m = PTHREAD_MUTEX_INITIALIZER;
+
+//update target
+static pthread_mutex_t target_upd_m = PTHREAD_MUTEX_INITIALIZER;
+
 ///
 
 ///status var
@@ -56,6 +63,16 @@ pthread_mutex_t *get_mat_upd_mutex()
 pthread_mutex_t *get_bullet_status_mutex()
 {
   return &bullet_status_m;
+}
+
+pthread_mutex_t *get_target_ptrmat_upd_mutex()
+{
+  return &target_ptrmat_upd_m;
+}
+
+pthread_mutex_t *get_target_upd_mutex()
+{
+  return &target_upd_m;
 }
 
 ///functii status var

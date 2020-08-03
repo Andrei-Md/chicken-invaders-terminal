@@ -35,8 +35,4 @@ position_st get_player_pos();
 ////
 extern void *start_bullet(void *thread_id);
 
-//tmp
-void debug_player();
-void tmp_update_player();
-
 #endif

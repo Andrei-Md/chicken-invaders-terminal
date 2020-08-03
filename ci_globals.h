@@ -3,8 +3,8 @@
 
 ///board
 //margini exterioare
-#define HMAX 34
-#define LMAX 70
+#define HMAX 14
+#define LMAX 20
 //margini interioare
 #define H_IN_MIN 1
 #define H_IN_MAX (HMAX-2)
@@ -16,8 +16,7 @@
 
 //targets
 #define TARGET_WIDTH 3
-
-#define NRMAX_TARGETS 20
+#define NR_TARGETS 20
 
 #define LIVES 10
 #define LIVESWIDTH 2
@@ -25,10 +24,11 @@
 #define MAXSCORE 999999
 
 //threads
-#define NUM_THREADS 1
+#define NUM_THREADS 2
 #define TH_PLAYER 0
-#define TH_BULLET 1
+#define TH_TARGET 1
 
+#define TH_BULLET 10
 
 typedef struct Position_st
 {
@@ -67,6 +67,13 @@ void set_game_on_check(int val);
 pthread_mutex_t *get_bullet_status_mutex();
 int get_bullet_status_check();
 void set_bullet_status_check(int val);
+
+//target
+//modificare target ptr matrix
+pthread_mutex_t *get_target_ptrmat_upd_mutex();
+//update target
+pthread_mutex_t *get_target_upd_mutex();
+
 
 
 #endif

@@ -9,10 +9,4 @@ typedef struct Bullet_st
 
 void *start_bullet(void *thread_id);
 
-
-extern position_st get_player_pos();
-
-
-
-
 #endif
