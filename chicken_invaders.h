@@ -6,7 +6,7 @@ void draw_game();
 void draw_game_over();
 
 ///init
-static void init();
+
 void init_draw();
 void init_terminal(); //terminal
 
@@ -19,6 +19,7 @@ void reset_terminal();
 
 //modificare matrice joc
 void set_mat_draw(int r, int c, char ch);
+char get_mat_draw(int r, int c);
 
 ///
 ///game

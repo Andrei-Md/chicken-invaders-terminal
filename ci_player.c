@@ -14,6 +14,16 @@ static void start_bullet_pl();
 //final
 static void final();
 
+//game
+static void game_player();
+static void game_on_player();
+
+static void update_player(int dir_x, int dir_y);
+static void update_matrix_pl(int dir_x, int dir_y);
+
+static int interior_player(int dir_x, int dir_y);
+static int collision_player_tg(int dir_x, int dir_y);
+
 ///
 
 player_st player;
@@ -43,11 +53,13 @@ static void init()
 
 static void init_player()
 {
+  pthread_mutex_lock(get_player_upd_mutex());
   player.pos_x[1] = ((L_IN_MAX - L_IN_MIN) / 2) + L_IN_MIN;
   player.pos_x[0] = player.pos_x[1] - 1;
   player.pos_x[2] = player.pos_x[1] + 1;
   player.pos_y = H_IN_MAX;
   player.on_off = kOff;
+  pthread_mutex_unlock(get_player_upd_mutex());
 }
 
 static void start_bullet_pl()
@@ -81,22 +93,20 @@ static void start_bullet_pl()
   }
 }
 
-void game_player()
+static void game_player()
 {
 
   //TODO
   //signal wait implementation
 
-#ifdef DEBUG
   player.on_off = kOn;
-#endif
 
   game_on_player();
 
   return;
 }
 
-void game_on_player()
+static void game_on_player()
 {
   //initial state
   update_player(0, 0);
@@ -109,12 +119,12 @@ void game_on_player()
     {
       player.on_off = kOff;
       pthread_mutex_unlock(get_game_on_mutex());
-      
+
       //opresc bullet
       pthread_mutex_lock(get_bullet_status_mutex());
       set_bullet_status_check(2);
       pthread_mutex_unlock(get_bullet_status_mutex());
-      
+
       return;
     }
     pthread_mutex_unlock(get_game_on_mutex());
@@ -173,22 +183,64 @@ void game_on_player()
   return;
 }
 
-void update_player(int dir_x, int dir_y)
+static void update_player(int dir_x, int dir_y)
 {
   //check daca noua pozitie este in interior
   if (interior_player(dir_x, dir_y))
   {
+    //vf daca am coliziune cu target
+    if (collision_player_tg(dir_x, dir_y))
+    {
+      //opresc bullet
+      pthread_mutex_lock(get_bullet_status_mutex());
+      set_bullet_status_check(2);
+      pthread_mutex_unlock(get_bullet_status_mutex());
+
+      //opresc jocul
+      pthread_mutex_lock(get_game_on_mutex());
+      set_game_on_check(0);
+      pthread_mutex_unlock(get_game_on_mutex());
+
+      return;
+    }
+
+    pthread_mutex_lock(get_player_upd_mutex());
+
     player.pos_x[0] = player.pos_x[0] + dir_x;
     player.pos_x[1] = player.pos_x[1] + dir_x;
     player.pos_x[2] = player.pos_x[2] + dir_x;
     player.pos_y = player.pos_y + dir_y;
+
+    pthread_mutex_unlock(get_player_upd_mutex());
+
     update_matrix_pl(dir_x, dir_y);
   }
-
   return;
 }
 
-int interior_player(int dir_x, int dir_y)
+static int collision_player_tg(int dir_x, int dir_y)
+{
+  pthread_mutex_lock(get_target_upd_mutex());
+
+  int pl_x;
+  int pl_y;
+
+  for (size_t i = 0; i < SPACESHIP_WIDTH; i++)
+  {
+    pl_x = player.pos_x[i] + dir_x;
+    pl_y = player.pos_y + dir_y;
+    if (get_target_ptrmat(pl_y, pl_x) != NULL)
+    {
+      pthread_mutex_unlock(get_target_upd_mutex());
+      return 1;
+    }
+  }
+
+  pthread_mutex_unlock(get_target_upd_mutex());
+  return 0;
+}
+
+static int interior_player(int dir_x, int dir_y)
 {
   if (dir_x == 0 && dir_y != 0) //depl pe y
   {
@@ -208,7 +260,7 @@ int interior_player(int dir_x, int dir_y)
     return 0;
 }
 
-void update_matrix_pl(int dir_x, int dir_y)
+static void update_matrix_pl(int dir_x, int dir_y)
 {
   pthread_mutex_lock(get_mat_upd_mutex());
   ///update matrix
@@ -259,4 +311,10 @@ position_st get_player_pos()
   pos.x = player.pos_x[(int)SPACESHIP_WIDTH / 2];
   pos.y = player.pos_y;
   return pos;
+}
+
+player_st get_player()
+{
+  return player;
+
 }

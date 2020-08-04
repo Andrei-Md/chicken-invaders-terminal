@@ -6,7 +6,7 @@
 
 #include "ci_globals.h"
 
-///static mutex
+///> static mutex
 
 //game status
 static pthread_mutex_t game_status_m = PTHREAD_MUTEX_INITIALIZER;
@@ -14,20 +14,31 @@ static pthread_mutex_t game_status_m = PTHREAD_MUTEX_INITIALIZER;
 //update matrix
 static pthread_mutex_t matrix_upd_m = PTHREAD_MUTEX_INITIALIZER;
 
+//player update
+static pthread_mutex_t player_upd_m = PTHREAD_MUTEX_INITIALIZER;
+
 //bullet status
 static pthread_mutex_t bullet_status_m = PTHREAD_MUTEX_INITIALIZER;
 
 //update target matrix
-static pthread_mutex_t target_ptrmat_upd_m = PTHREAD_MUTEX_INITIALIZER;
+// static pthread_mutex_t target_ptrmat_upd_m = PTHREAD_MUTEX_INITIALIZER;
 
 //update target
 static pthread_mutex_t target_upd_m = PTHREAD_MUTEX_INITIALIZER;
 
-///
+//update score
+static pthread_mutex_t score_upd_m = PTHREAD_MUTEX_INITIALIZER;
+
+//winner
+static pthread_mutex_t winner_m = PTHREAD_MUTEX_INITIALIZER;
+///<
 
 ///status var
 static int game_status_check = 0;
 static int bullet_status_check = 0;
+static int winner_status_check = 0;
+//score
+score_st score;
 
 /*sleep for specified time in miliseconds*/
 int do_sleep(int miliseconds)
@@ -60,19 +71,33 @@ pthread_mutex_t *get_mat_upd_mutex()
   return &matrix_upd_m;
 }
 
+pthread_mutex_t *get_player_upd_mutex()
+{
+  return &player_upd_m;
+}
+
 pthread_mutex_t *get_bullet_status_mutex()
 {
   return &bullet_status_m;
 }
 
-pthread_mutex_t *get_target_ptrmat_upd_mutex()
-{
-  return &target_ptrmat_upd_m;
-}
+// pthread_mutex_t *get_target_ptrmat_upd_mutex()
+// {
+//   return &target_ptrmat_upd_m;
+// }
 
 pthread_mutex_t *get_target_upd_mutex()
 {
   return &target_upd_m;
+}
+
+pthread_mutex_t *get_score_upd_mutex()
+{
+  return &score_upd_m;
+}
+pthread_mutex_t *get_winner_mutex()
+{
+  return &winner_m;
 }
 
 ///functii status var
@@ -101,5 +126,31 @@ int get_bullet_status_check()
 void set_bullet_status_check(int val)
 {
   bullet_status_check = val;
+}
+
+score_st get_score()
+{
+  return score;
+}
+
+void set_score(int val)
+{
+  score.points = val;
+}
+
+
+//winner status
+//0 - Lose
+//1 - Win
+int get_winner_status()
+{
+  return winner_status_check;
+}
+//winner status
+//0 - Lose
+//1 - Win
+void set_winner_status(int val)
+{
+  winner_status_check = val;
 }
 

@@ -7,7 +7,6 @@
 #include "ci_globals.h"
 #include "ci_player.h"
 #include "ci_bullet.h"
-#include "ci_score.h"
 #include "ci_target.h"
 #include "chicken_invaders.h"
 
@@ -22,6 +21,10 @@ static pthread_t threads[NUM_THREADS];
 //optiuni terminal
 static struct termios initial_settings, new_settings;
 
+static void init();
+static void init_score();
+
+static void draw_winner();
 
 // //counter for wait
 // static int counter = NUM_THREADS;
@@ -47,6 +50,7 @@ int main(int argc, char *argv[])
       break;
     }
     pthread_mutex_unlock(get_game_on_mutex());
+
     draw_game();
 
     if (do_sleep(65))
@@ -58,7 +62,14 @@ int main(int argc, char *argv[])
 
   ci_final();
 
-  draw_game_over();
+  //draw final
+  pthread_mutex_lock(get_winner_mutex());
+
+  if (get_winner_status() == 0)
+    draw_game_over();
+  else
+    draw_winner();
+  pthread_mutex_unlock(get_winner_mutex());
 
   reset_terminal();
 
@@ -98,8 +109,6 @@ void ci_start()
     perror("Cauza este");
   }
 
-  start_score();
-
   ///
 
   //destroy attribute
@@ -116,6 +125,14 @@ static void init()
   init_terminal();
   init_draw();
   init_ptrmat();
+  init_score();
+}
+
+//initializare score
+static void init_score()
+{
+  score.points = 0;
+  score.lives = LIVES;
 }
 
 //initializare mat de afisare playing ground cu spatii
@@ -203,9 +220,15 @@ void draw_game()
   printf("\e[2J");
   // system("clear");
 
+  pthread_mutex_lock(get_score_upd_mutex());
+
   //draw Score board
   printf("Points - %.*ld\t", SCOREWIDTH, score.points);
   printf("Lives - %.*d\n", LIVESWIDTH, score.lives);
+
+  pthread_mutex_unlock(get_score_upd_mutex());
+
+  pthread_mutex_lock(get_mat_upd_mutex());
 
   //afisare playing ground
   for (size_t r = 0; r < HMAX; r++)
@@ -214,6 +237,9 @@ void draw_game()
       printf("%c", mat_draw[r][c]);
     printf("\n");
   }
+
+  pthread_mutex_unlock(get_mat_upd_mutex());
+
   return;
 }
 
@@ -234,23 +260,35 @@ void draw_game_over()
   printf("                               \n");
 }
 
+static void draw_winner()
+{
+  printf("\e[2J");
+  printf("##                       ##\n");
+  printf(" ##         ###         ## \n");
+  printf("  ##       ## ##       ##  \n");
+  printf("   ##     ##   ##     ##   \n");
+  printf("    ##   ##     ##   ##    \n");
+  printf("     ## ##       ## ##     \n");
+  printf("      ###         ###      \n");
+
+  pthread_mutex_lock(get_score_upd_mutex());
+
+  //draw Score board
+  printf("Points - %.*ld\n", SCOREWIDTH, score.points);
+  printf("Lives Left- %.*d\n", LIVESWIDTH, score.lives);
+
+  pthread_mutex_unlock(get_score_upd_mutex());
+
+}
+
 //set matricea de afisare
 void set_mat_draw(int r, int c, char ch)
 {
   mat_draw[r][c] = ch;
 }
 
-// /////////////////////////////////////////////////////////////////
-// //tmp
-// void tmp_update_mat_draw()
-// {
-//   //targets
-//   for (size_t tg = 0; tg < NR_TARGETS; tg++)
-//   {
-//     for (size_t i = 0; i < TARGET_WIDTH; i++)
-//       if (target[tg].on_off == kOn)
-//       {
-//         mat_draw[target[tg].pos_y][target[tg].pos_x[i]] = shape_target[target[tg].state][i];
-//       }
-//   }
-// }
+//get matricea de afisare
+char get_mat_draw(int r, int c)
+{
+  return mat_draw[r][c];
+}

@@ -4,8 +4,6 @@
 
 #include "ci_globals.h"
 #include "ci_bullet.h"
-#include "ci_player.h"
-#include "ci_target.h"
 
 static void init_bullet();
 
@@ -17,7 +15,6 @@ static void bullet_fire_pos();
 static void update_bullet();
 static void update_matrix_bullet(int clean);
 
-static int margine_bullet();
 static int interior_bullet();
 
 static int collision_bullet_tg_check();
@@ -47,7 +44,7 @@ static void init_bullet()
 
 static void game_bullet()
 {
-  //TO DO
+  //TODO
   //signal wait implementation
 
   while (1)
@@ -84,20 +81,6 @@ static void game_on_bullet()
 {
   bullet_fire_pos();
   bullet.on_off = kOn;
-
-  //daca este direct in margine
-  if (margine_bullet())
-  {
-    //nu trag nici un bullet si setez pe 0-NO bullet
-    pthread_mutex_lock(get_bullet_status_mutex());
-    set_bullet_status_check(0);
-    pthread_mutex_unlock(get_bullet_status_mutex());
-    bullet.on_off = kOff;
-    return;
-  }
-
-  //altfel
-  update_matrix_bullet(0);
 
   if (do_sleep(50))
   {
@@ -153,13 +136,29 @@ static void update_bullet()
       //deblochez
       pthread_mutex_unlock(get_target_upd_mutex());
       // pthread_mutex_unlock(get_target_ptrmat_upd_mutex());
+
+      //scad nr de tinte
+      targets_left--;
+      if (targets_left == 0)
+      { //semnalez ca nu mai am tinte si este victorie
+        pthread_mutex_lock(get_winner_mutex());
+        set_winner_status(1);
+        pthread_mutex_unlock(get_winner_mutex());
+
+        //opresc jocul
+        pthread_mutex_lock(get_game_on_mutex());
+        set_game_on_check(0);
+        pthread_mutex_unlock(get_game_on_mutex());
+      }
       return;
     }
-    //deblochez
-    pthread_mutex_unlock(get_target_upd_mutex());
-    // pthread_mutex_unlock(get_target_ptrmat_upd_mutex());
-
-    update_matrix_bullet(1);
+    else
+    {
+      //deblochez
+      pthread_mutex_unlock(get_target_upd_mutex());
+      // pthread_mutex_unlock(get_target_ptrmat_upd_mutex());
+      update_matrix_bullet(1);
+    }
   }
   else
   {
@@ -185,24 +184,28 @@ static int collision_bullet_tg_check()
 
 static void collision_bullet_tg_update()
 {
-  // TODO
   // updatez scorul
+  pthread_mutex_lock(get_score_upd_mutex());
+  set_score(get_score().points + TARGETSCORE);
+  pthread_mutex_unlock(get_score_upd_mutex());
 
   //setez target off
   get_target_ptrmat(bullet.pos.y, bullet.pos.x)->on_off = kOff;
   ///curat target din matr ptr
-  target_st* tmp_tg = get_target_ptrmat(bullet.pos.y, bullet.pos.x);
+  target_st *tmp_tg = get_target_ptrmat(bullet.pos.y, bullet.pos.x);
 
   for (size_t i = 0; i < TARGET_WIDTH; i++)
   {
-    set_target_ptrmat(tmp_tg->pos_y,tmp_tg->pos_x[i] , -1);
+    set_target_ptrmat(tmp_tg->pos_y, tmp_tg->pos_x[i], -1);
   }
 
   ///curat matr afisare
   //bullet
   pthread_mutex_lock(get_mat_upd_mutex());
-  //sterg de pe poz veche
-  set_mat_draw(bullet.pos.y + 1, bullet.pos.x, ' ');
+  //sterg de pe poz veche doar daca este bullet
+  if(get_mat_draw(bullet.pos.y + 1,bullet.pos.x) == shape_bullet)
+    set_mat_draw(bullet.pos.y + 1, bullet.pos.x, ' ');
+
   //target
   for (int i = 0; i < SPACESHIP_WIDTH; i++)
     set_mat_draw(tmp_tg->pos_y, tmp_tg->pos_x[i], ' ');
@@ -220,15 +223,9 @@ static void update_matrix_bullet(int clean)
   //mut bullet
   set_mat_draw(bullet.pos.y, bullet.pos.x, shape_bullet);
   //sterg de pe poz veche
-  set_mat_draw(bullet.pos.y + clean, bullet.pos.x, ' ');
+  if(get_mat_draw(bullet.pos.y + clean,bullet.pos.x) == shape_bullet)
+    set_mat_draw(bullet.pos.y + clean, bullet.pos.x, ' ');
   pthread_mutex_unlock(get_mat_upd_mutex());
-}
-
-static int margine_bullet()
-{
-  if (bullet.pos.y == H_IN_MIN - 1)
-    return 1;
-  return 0;
 }
 
 static int interior_bullet()
@@ -241,7 +238,9 @@ static int interior_bullet()
 //bullet fire pos - player pos -1 y
 static void bullet_fire_pos()
 {
+  pthread_mutex_lock(get_player_upd_mutex());
   position_st pl_pos = get_player_pos();
   bullet.pos.x = pl_pos.x;
-  bullet.pos.y = pl_pos.y - 1;
+  bullet.pos.y = pl_pos.y;
+  pthread_mutex_unlock(get_player_upd_mutex());
 }

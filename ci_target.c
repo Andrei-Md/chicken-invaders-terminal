@@ -6,7 +6,7 @@
 #include "ci_target.h"
 
 target_st target[NR_TARGETS];
-target_st *target_ptrmat[HMAX][LMAX];
+static target_st *target_ptrmat[HMAX][LMAX];
 
 //init
 static void init();
@@ -24,6 +24,7 @@ static void update_insert_target(size_t tg_nr, position_st in_pos);
 static void move_target(size_t tg_nr);
 static void update_target(size_t tg_nr);
 static void update_target_changelane(size_t tg_nr);
+static void collision_target_pl(size_t tg_nr);
 
 //matrix update
 static void update_matrix_tg();
@@ -80,11 +81,13 @@ static void init_target()
 
 void init_ptrmat()
 {
-  pthread_mutex_lock(get_target_ptrmat_upd_mutex());
+  // pthread_mutex_lock(get_target_ptrmat_upd_mutex());
+  pthread_mutex_lock(get_target_upd_mutex());
   for (size_t r = 0; r < HMAX; r++)
     for (size_t c = 0; c < LMAX; c++)
       target_ptrmat[r][c] = NULL;
-  pthread_mutex_unlock(get_target_ptrmat_upd_mutex());
+  // pthread_mutex_unlock(get_target_ptrmat_upd_mutex());
+  pthread_mutex_unlock(get_target_upd_mutex());
 }
 
 static void game_target()
@@ -139,7 +142,7 @@ static void game_on_target()
     check++;
     check %= 4;
 
-    if (do_sleep(200))
+    if (do_sleep(80))
     {
       fprintf(stderr, "target: Sleep-ul a esuat\n");
       perror("Cauza este");
@@ -213,6 +216,35 @@ static void move_target(size_t tg_nr)
     update_target_changelane(tg_nr);
   }
   update_target_ptrmat(tg_nr);
+
+  //check collision with player
+  collision_target_pl(tg_nr);
+}
+
+//check collision of target with player
+static void collision_target_pl(size_t tg_nr)
+{
+  pthread_mutex_lock(get_player_upd_mutex());
+
+  for (size_t tg_part = 0; tg_part < TARGET_WIDTH; tg_part++)
+  {
+    for (size_t pl_part = 0; pl_part < SPACESHIP_WIDTH; pl_part++)
+    {
+      if (target[tg_nr].pos_y == get_player().pos_y && target[tg_nr].pos_x[tg_part] == get_player().pos_x[pl_part])
+      {
+        //collision
+        //semnalez oprirea jocului
+        printf("aici\n");
+        pthread_mutex_lock(get_game_on_mutex());
+        set_game_on_check(0);
+        pthread_mutex_unlock(get_game_on_mutex());
+
+        pthread_mutex_unlock(get_player_upd_mutex());
+        return;
+      }
+    }
+  }
+  pthread_mutex_unlock(get_player_upd_mutex());
 }
 
 static void update_target(size_t tg_nr)
@@ -232,7 +264,7 @@ static void update_target_changelane(size_t tg_nr)
 
   if (target[tg_nr].pos_y > H_IN_MAX)
   {
-    //opresc jocul
+    //semnalez oprirea jocului
     pthread_mutex_lock(get_game_on_mutex());
     set_game_on_check(0);
     pthread_mutex_unlock(get_game_on_mutex());
@@ -289,6 +321,15 @@ static int interior_target(int pos_x, int pos_y)
   return 1;
 }
 
+static void new_state_tg()
+{
+  for (size_t tg = 0; tg < NR_TARGETS; tg++)
+  {
+    target[tg].state += 1;
+    target[tg].state %= 3;
+  }
+}
+
 //set matricea de ptr la target
 void set_target_ptrmat(int r, int c, int tg_nr)
 {
@@ -298,16 +339,7 @@ void set_target_ptrmat(int r, int c, int tg_nr)
     target_ptrmat[r][c] = &target[tg_nr];
 }
 
-target_st* get_target_ptrmat(int r,int c){
-  return target_ptrmat[r][c];
-}
-
-
-static void new_state_tg()
+target_st *get_target_ptrmat(int r, int c)
 {
-  for (size_t tg = 0; tg < NR_TARGETS; tg++)
-  {
-    target[tg].state += 1;
-    target[tg].state %= 3;
-  }
+  return target_ptrmat[r][c];
 }
