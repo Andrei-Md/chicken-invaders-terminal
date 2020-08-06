@@ -10,7 +10,7 @@
 #include "ci_target.h"
 #include "chicken_invaders.h"
 
-/* matrice afisare bordata
+ /*matrice afisare bordata
   x -> 1 : LMAX -2;
   y -> 1 : HMAX -2;
  */
@@ -21,9 +21,22 @@ static pthread_t threads[NUM_THREADS];
 //optiuni terminal
 static struct termios initial_settings, new_settings;
 
+///init
+static void init_draw();
+static void init_terminal(); //terminal
+
 static void init();
 static void init_score();
+///start
+static void ci_start();
 
+//exit
+static void ci_final();
+static void reset_terminal();
+
+//afisare
+static void draw_game();
+static void draw_game_over();
 static void draw_winner();
 
 // //counter for wait
@@ -77,7 +90,7 @@ int main(int argc, char *argv[])
 }
 
 //start la thread-uri pentru fiecare elem
-void ci_start()
+static void ci_start()
 {
 
   /*Initialize and set:
@@ -136,7 +149,7 @@ static void init_score()
 }
 
 //initializare mat de afisare playing ground cu spatii
-void init_draw()
+static void init_draw()
 {
   ///fill
   for (size_t r = 0; r < HMAX; r++)
@@ -158,7 +171,7 @@ void init_draw()
 }
 
 //initializare optiuni terminal
-void init_terminal()
+static void init_terminal()
 {
 
   tcgetattr(0, &initial_settings);
@@ -192,7 +205,7 @@ void init_terminal()
   tcsetattr(0, TCSANOW, &new_settings);
 }
 
-void ci_final()
+static void ci_final()
 {
   //wait threads to complete
   int t;
@@ -208,13 +221,13 @@ void ci_final()
   }
 }
 
-void reset_terminal()
+static void reset_terminal()
 {
   //reset terminal to initial state
   tcsetattr(0, TCSANOW, &initial_settings);
 }
 
-void draw_game()
+static void draw_game()
 {
   // printf("\e[1;1H\e[2J");
   printf("\e[2J");
@@ -243,7 +256,7 @@ void draw_game()
   return;
 }
 
-void draw_game_over()
+static void draw_game_over()
 {
   printf("\e[2J");
   printf("  #####   ####  ##   ## ###### \n");

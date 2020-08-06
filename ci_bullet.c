@@ -82,13 +82,10 @@ static void game_on_bullet()
   bullet_fire_pos();
   bullet.on_off = kOn;
 
-  if (do_sleep(50))
-  {
-    fprintf(stderr, "bullet: Sleep-ul a esuat\n");
-    perror("Cauza este");
-  }
   while (1)
   {
+    update_bullet();
+
     pthread_mutex_lock(get_bullet_status_mutex());
     if (get_bullet_status_check() == 2)
     {
@@ -108,7 +105,6 @@ static void game_on_bullet()
     }
     pthread_mutex_unlock(get_bullet_status_mutex());
 
-    update_bullet();
 
     if (do_sleep(50))
     {
@@ -123,7 +119,7 @@ static void update_bullet()
   //update daca viit poz a bullet este in interior
   if (interior_bullet())
   {
-    bullet.pos.y -= 1; //updatez cu 1
+    bullet.pos.y += BULLET_ADV_DIST; //updatez cu BULLET_ADV_DIST
 
     //blochez target-urile si matr de ptr la target
     pthread_mutex_lock(get_target_upd_mutex());
@@ -203,8 +199,8 @@ static void collision_bullet_tg_update()
   //bullet
   pthread_mutex_lock(get_mat_upd_mutex());
   //sterg de pe poz veche doar daca este bullet
-  if(get_mat_draw(bullet.pos.y + 1,bullet.pos.x) == shape_bullet)
-    set_mat_draw(bullet.pos.y + 1, bullet.pos.x, ' ');
+  if(get_mat_draw(bullet.pos.y - BULLET_ADV_DIST,bullet.pos.x) == shape_bullet)
+    set_mat_draw(bullet.pos.y - BULLET_ADV_DIST, bullet.pos.x, ' ');
 
   //target
   for (int i = 0; i < SPACESHIP_WIDTH; i++)
@@ -221,7 +217,8 @@ static void update_matrix_bullet(int clean)
 {
   pthread_mutex_lock(get_mat_upd_mutex());
   //mut bullet
-  set_mat_draw(bullet.pos.y, bullet.pos.x, shape_bullet);
+  if(get_mat_draw(bullet.pos.y,bullet.pos.x) == ' ')
+    set_mat_draw(bullet.pos.y, bullet.pos.x, shape_bullet);
   //sterg de pe poz veche
   if(get_mat_draw(bullet.pos.y + clean,bullet.pos.x) == shape_bullet)
     set_mat_draw(bullet.pos.y + clean, bullet.pos.x, ' ');
@@ -230,12 +227,12 @@ static void update_matrix_bullet(int clean)
 
 static int interior_bullet()
 {
-  if (bullet.pos.y - 1 < H_IN_MIN)
+  if (bullet.pos.y + BULLET_ADV_DIST < H_IN_MIN)
     return 0;
   return 1;
 }
 
-//bullet fire pos - player pos -1 y
+//bullet fire pos -> player pos + BULLET_ADV_DIST(-1) pe y
 static void bullet_fire_pos()
 {
   pthread_mutex_lock(get_player_upd_mutex());

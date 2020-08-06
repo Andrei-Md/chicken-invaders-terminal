@@ -17,6 +17,10 @@
 //targets
 #define TARGET_WIDTH 3
 #define NR_TARGETS 100
+#define TARGET_DISTANCE 5
+
+//bullet
+#define BULLET_ADV_DIST -1
 
 //scoreboard
 #define LIVES 1

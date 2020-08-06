@@ -4,8 +4,9 @@
 //init
 void *start_player(void *);
 
-////
+//
 extern void *start_bullet(void *thread_id);
+
 player_st get_player();
 
 #endif

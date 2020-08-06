@@ -39,12 +39,12 @@ static int interior_target(int pos_x, int pos_y);
 static void new_state_tg();
 
 //insert positions
-position_st insert_pos[] = {{1, 1}};
-int insert_dir = 1; //insert from left to right
+static position_st insert_pos[] = {{1, 1}};
+static int insert_dir = 1; //insert from left to right
 
-int check;
+static int check_target_distance;
 
-char shape_target[3][3] = {{'\\', 'O', '/'},
+static char shape_target[3][3] = {{'\\', 'O', '/'},
                            {'-', 'O', '-'},
                            {'/', 'O', '\\'}};
 
@@ -123,14 +123,13 @@ static void game_on_target()
       move_target(tg);
     }
     //insert and wait for other targets to move
-    if (target_nr < NR_TARGETS && check == 0)
+    if (target_nr < NR_TARGETS && check_target_distance == 0)
     {
       insert_target(target_nr, insert_pos[0]);
       target_nr++;
     }
     pthread_mutex_unlock(get_target_upd_mutex());
     // pthread_mutex_unlock(get_target_ptrmat_upd_mutex());
-    //
 
     //update matrice de afisare
     update_matrix_tg();
@@ -138,9 +137,9 @@ static void game_on_target()
     //schimbare stare target
     new_state_tg();
 
-    //update check
-    check++;
-    check %= 4;
+    //update check_target_distance
+    check_target_distance++;
+    check_target_distance %= TARGET_DISTANCE;
 
     if (do_sleep(80))
     {
@@ -233,13 +232,13 @@ static void collision_target_pl(size_t tg_nr)
       if (target[tg_nr].pos_y == get_player().pos_y && target[tg_nr].pos_x[tg_part] == get_player().pos_x[pl_part])
       {
         //collision
+        pthread_mutex_unlock(get_player_upd_mutex());
+        
         //semnalez oprirea jocului
-        printf("aici\n");
         pthread_mutex_lock(get_game_on_mutex());
         set_game_on_check(0);
         pthread_mutex_unlock(get_game_on_mutex());
 
-        pthread_mutex_unlock(get_player_upd_mutex());
         return;
       }
     }
@@ -262,7 +261,7 @@ static void update_target_changelane(size_t tg_nr)
   target[tg_nr].lane_ch = 1; //marchez schimbarea de linie
   target[tg_nr].move_dir = -target[tg_nr].move_dir;
 
-  if (target[tg_nr].pos_y > H_IN_MAX)
+  if (target[tg_nr].pos_y >= H_IN_MAX)
   {
     //semnalez oprirea jocului
     pthread_mutex_lock(get_game_on_mutex());
@@ -331,6 +330,7 @@ static void new_state_tg()
 }
 
 //set matricea de ptr la target
+// -1 -> NULL
 void set_target_ptrmat(int r, int c, int tg_nr)
 {
   if (tg_nr == -1)
