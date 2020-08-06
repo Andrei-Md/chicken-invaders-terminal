@@ -44,16 +44,17 @@ static void init_bullet()
 
 static void game_bullet()
 {
-  //TODO
-  //signal wait implementation
-
   while (1)
   {
+
     pthread_mutex_lock(get_bullet_status_mutex());
+
     switch (get_bullet_status_check())
     {
     case 0:
       //nothing (no bullet)
+      //wait
+      pthread_cond_wait(get_bullet_cv(),get_bullet_status_mutex());
       pthread_mutex_unlock(get_bullet_status_mutex());
       break;
     case 1:
@@ -68,11 +69,6 @@ static void game_bullet()
     default:
       pthread_mutex_unlock(get_bullet_status_mutex());
       break;
-    }
-    if (do_sleep(50))
-    {
-      fprintf(stderr, "bullet: Sleep-ul a esuat\n");
-      perror("Cauza este");
     }
   }
 }
@@ -158,9 +154,10 @@ static void update_bullet()
   }
   else
   {
-    // setez bullet-status pe 0-NO bullet
+    // setez bullet-status pe 0-NO bullet doar daca e setat pe ON
     pthread_mutex_lock(get_bullet_status_mutex());
-    set_bullet_status_check(0);
+    if(get_bullet_status_check() == 1)
+      set_bullet_status_check(0);
     pthread_mutex_unlock(get_bullet_status_mutex());
 
     //curat matricea
@@ -207,9 +204,10 @@ static void collision_bullet_tg_update()
     set_mat_draw(tmp_tg->pos_y, tmp_tg->pos_x[i], ' ');
   pthread_mutex_unlock(get_mat_upd_mutex());
 
-  // setez bullet-status pe 0-NO bullet
+  // setez bullet-status pe 0-NO bullet doar daca e setat pe ON
   pthread_mutex_lock(get_bullet_status_mutex());
-  set_bullet_status_check(0);
+  if(get_bullet_status_check() == 1)
+    set_bullet_status_check(0);
   pthread_mutex_unlock(get_bullet_status_mutex());
 }
 

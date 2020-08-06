@@ -31,6 +31,9 @@ static pthread_mutex_t score_upd_m = PTHREAD_MUTEX_INITIALIZER;
 
 //winner
 static pthread_mutex_t winner_m = PTHREAD_MUTEX_INITIALIZER;
+
+//bullet cond variable
+pthread_cond_t bullet_cv = PTHREAD_COND_INITIALIZER;
 ///<
 
 ///status var
@@ -80,6 +83,12 @@ pthread_mutex_t *get_bullet_status_mutex()
 {
   return &bullet_status_m;
 }
+
+pthread_cond_t *get_bullet_cv()
+{
+  return &bullet_cv;
+}
+
 
 // pthread_mutex_t *get_target_ptrmat_upd_mutex()
 // {
@@ -153,4 +162,6 @@ void set_winner_status(int val)
 {
   winner_status_check = val;
 }
+
+
 

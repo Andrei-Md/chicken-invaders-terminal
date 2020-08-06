@@ -16,7 +16,7 @@
 
 //targets
 #define TARGET_WIDTH 3
-#define NR_TARGETS 100
+#define NR_TARGETS 50
 #define TARGET_DISTANCE 5
 
 //bullet
@@ -122,11 +122,16 @@ pthread_mutex_t *get_bullet_status_mutex();
 int get_bullet_status_check();
 void set_bullet_status_check(int val);
 
+//bullet cond var
+pthread_cond_t *get_bullet_cv();
+
+
 ///target
 //modificare target ptr matrix
 // pthread_mutex_t *get_target_ptrmat_upd_mutex();
 //update target
 pthread_mutex_t *get_target_upd_mutex();
+
 
 //score update
 pthread_mutex_t *get_score_upd_mutex();

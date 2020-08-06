@@ -123,6 +123,7 @@ static void game_on_player()
       //opresc bullet
       pthread_mutex_lock(get_bullet_status_mutex());
       set_bullet_status_check(2);
+      pthread_cond_signal(get_bullet_cv());
       pthread_mutex_unlock(get_bullet_status_mutex());
 
       return;
@@ -162,6 +163,7 @@ static void game_on_player()
         //opresc bullet
         pthread_mutex_lock(get_bullet_status_mutex());
         set_bullet_status_check(2);
+        pthread_cond_signal(get_bullet_cv());
         pthread_mutex_unlock(get_bullet_status_mutex());
 
         //opresc jocul
@@ -175,7 +177,10 @@ static void game_on_player()
     {
       pthread_mutex_lock(get_bullet_status_mutex());
       if (!get_bullet_status_check())
+      {
         set_bullet_status_check(1);
+        pthread_cond_signal(get_bullet_cv());
+      }
       pthread_mutex_unlock(get_bullet_status_mutex());
     }
   }
@@ -194,6 +199,7 @@ static void update_player(int dir_x, int dir_y)
       //opresc bullet
       pthread_mutex_lock(get_bullet_status_mutex());
       set_bullet_status_check(2);
+      pthread_cond_signal(get_bullet_cv());
       pthread_mutex_unlock(get_bullet_status_mutex());
 
       //opresc jocul
