@@ -27,5 +27,7 @@ Arrows for direction - Left/Right/Up/Down
 
 Trigger Bullet - space
 
+## Demo Video
+https://user-images.githubusercontent.com/15787218/159185020-639cfd31-49eb-4317-83df-9d3c67e8461f.mp4
 
 
