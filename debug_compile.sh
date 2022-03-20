@@ -59,9 +59,9 @@ function  compilare_final()
 
 # Validarea datelor de intrare
 
-if [ $# -eq 0 ]
+if [ $# -lt 2 ]
 then
-    echo "Utilizare: $0 director"
+    echo "Utilizare: $0 <dir_name>, <bin_file_name>"
     exit 1  # Fail!
 fi
 

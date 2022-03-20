@@ -20,11 +20,11 @@ static int interior_bullet();
 static int collision_bullet_tg_check();
 static void collision_bullet_tg_update();
 
-bullet_st bullet;
+static bullet_st bullet;
 
 static int targets_left = NR_TARGETS;
 
-char shape_bullet = '!';
+static char shape_bullet = '!';
 
 void *start_bullet(void *thread_id)
 {

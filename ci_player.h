@@ -2,7 +2,7 @@
 #define CI_PLAYER_H
 
 //init
-void *start_player(void *);
+extern void *start_player(void *);
 
 //
 extern void *start_bullet(void *thread_id);

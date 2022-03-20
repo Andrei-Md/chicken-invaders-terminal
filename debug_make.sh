@@ -1,3 +1,4 @@
+#!/bin/bash -x
 gcc -DDEBUG -g -O3 -Wall -c -o chicken_invaders.o chicken_invaders.c 
 gcc -DDEBUG -g -O3 -Wall -c -o ci_bullet.o ci_bullet.c 
 gcc -DDEBUG -g -O3 -Wall -c -o ci_globals.o ci_globals.c 

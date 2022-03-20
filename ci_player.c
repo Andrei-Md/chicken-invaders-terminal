@@ -26,7 +26,7 @@ static int collision_player_tg(int dir_x, int dir_y);
 
 ///
 
-player_st player;
+static player_st player;
 
 static char shape_player[3] = {'/', '^', '\\'};
 
@@ -34,7 +34,7 @@ static int key;
 
 static pthread_t thread_bullet;
 
-void *start_player(void *thread_id)
+extern void *start_player(void *thread_id)
 {
   init();
 

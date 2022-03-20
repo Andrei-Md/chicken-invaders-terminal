@@ -33,7 +33,7 @@ static pthread_mutex_t score_upd_m = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t winner_m = PTHREAD_MUTEX_INITIALIZER;
 
 //bullet cond variable
-pthread_cond_t bullet_cv = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t bullet_cv = PTHREAD_COND_INITIALIZER;
 ///<
 
 ///status var

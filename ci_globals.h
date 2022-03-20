@@ -1,10 +1,10 @@
-#ifndef CI_INIT_H
-#define CI_INIT_H
+#ifndef CI_GLOBAL_H
+#define CI_GLOBAL_H
 
 ///board
 //margini exterioare
 #define HMAX 15
-#define LMAX 60
+#define LMAX 80
 //margini interioare
 #define H_IN_MIN 1
 #define H_IN_MAX (HMAX - 2)
@@ -16,7 +16,7 @@
 
 //targets
 #define TARGET_WIDTH 3
-#define NR_TARGETS 50
+#define NR_TARGETS 30
 #define TARGET_DISTANCE 5
 
 //bullet

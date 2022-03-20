@@ -5,7 +5,7 @@
 #include "ci_globals.h"
 #include "ci_target.h"
 
-target_st target[NR_TARGETS];
+static target_st target[NR_TARGETS];
 static target_st *target_ptrmat[HMAX][LMAX];
 
 //init

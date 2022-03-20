@@ -10,7 +10,7 @@
 #include "ci_target.h"
 #include "chicken_invaders.h"
 
- /*matrice afisare bordata
+/*matrice afisare bordata
   x -> 1 : LMAX -2;
   y -> 1 : HMAX -2;
  */
@@ -225,6 +225,7 @@ static void reset_terminal()
 {
   //reset terminal to initial state
   tcsetattr(0, TCSANOW, &initial_settings);
+  printf("Reset terminal!!");
 }
 
 static void draw_game()
@@ -291,7 +292,6 @@ static void draw_winner()
   printf("Lives Left- %.*d\n", LIVESWIDTH, score.lives);
 
   pthread_mutex_unlock(get_score_upd_mutex());
-
 }
 
 //set matricea de afisare

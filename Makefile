@@ -9,7 +9,7 @@ all: chicken_invaders
 
 
 chicken_invaders: $(OFILES) $(HFILES)
-		$(CC) $(LDFLAGS) -o$@ $(OFILES) $(LIBS)
+		$(CC) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 %.o: %.c $(HFILES)
 		$(CC) -c $(CFLAGS) -o $@ $<
